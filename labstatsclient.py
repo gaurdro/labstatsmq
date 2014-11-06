@@ -8,22 +8,20 @@ import time
 import subprocess
 import zmq
 
+#TODO: setup this like we do in kickstart so it's named well
 syslog.openlog("logging")
 #Client settings
 remotehost = 'hwstats.engin.umich.edu'
 try:
-    os.environ["LABSTATSSERVER"]
+    remotehost = os.environ["LABSTATSSERVER"]
 except:
     pass
-else:
-    remotehost = os.environ["LABSTATSSERVER"]
+
 remoteport = 5555
 try:
-    os.environ["LABSTATSPORT"]
+    remoteport = es.environ["LABSTATSPORT"]
 except:
     pass
-else:
-    remotehost = os.enviorn["LABSTATSPORT"]
 
 delimiter = "\t"
 interval = 300 #seconds, or 5 minutes
@@ -33,6 +31,7 @@ timeformat = "%Y%m%d%H%M%S"
 debug = 0
 timeformat = "%Y%m%d%H%M%S"
 #Get options
+#TODO: use a library for this, I think there's one that handles things better"
 try:
     opts, args = getopt.getopt(sys.argv[1:], "s:p:di:", ["server=", "port=", "debug", "interval="])
 
@@ -58,7 +57,7 @@ if interval < 1:
 # Static probes
 # Set initial unknown values to -1, so we can discard them if they are
 # reported somehow
-
+#TODO: make a single dict and update it each round
 os = "L"
 system = "undefined"
 model = "undefined"
@@ -133,6 +132,7 @@ def getjiffies():
 	return (idle, total)
 
 #Computes XOR checksum
+#TODO: remove unneeded with zmq transport
 def checksum(string):
 
 	sum = 0
@@ -164,6 +164,7 @@ else:
 model = system +" " + model
 
 #Make sure system and name are defined
+#TODO: move this checking up to where it gets these.
 try:
 	system
 	name
@@ -185,6 +186,7 @@ else:
 	MEMINFO.close()
 
 #Make sure totalmem and totalcommit are defined
+#TODO: move these up to where they're gotten
 try:
 	totalmem
 	totalcommit
@@ -215,7 +217,7 @@ if totalcpus == 0:
 #Set up 0MQ connection
 try:
     context = zmq.Context()
-    socket = context.socket(zmq.REQ)
+    socket = context.socket(zmq.PUSH)
     socket.connect("tcp://%s:%d" % (remotehost,remoteport))
 except Exception as e:
     logerr("Could not establish 0MQ session: %s" % e)
@@ -319,7 +321,7 @@ while 1:
 		print "CPU Load: ", cpuload
 		print "Logged in users: ", loggedinusers
 		print "User logged in?: ", loggedinuserbool
-
+	#there's libraries to do events at an interval.  Just sleeping doesn't gaurantee an interval.
 	time.sleep(interval)
 syslog.closelog()
 
